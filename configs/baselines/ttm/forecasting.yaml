@@ -1,0 +1,7 @@
+model: TTM
+task: forecasting
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+context_length: 512
+horizons: [96, 192, 336, 720]
+hyperparameters: {model_context_length: 512}
+optimization: {epochs: 10, learning_rate: 0.0001, batch_size: 64, patience: 3, samples_per_epoch: 100000, validation_samples: 20000}

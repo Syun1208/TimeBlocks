@@ -1,0 +1,8 @@
+model: TimeMixer
+task: imputation
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+context_length: 96
+imputation:
+  mask_ratios: [0.1, 0.2, 0.3]
+hyperparameters: {e_layers: 2, down_sampling_layers: 3, down_sampling_window: 2, down_sampling_method: avg, d_model: 16, d_ff: 32}
+optimization: {epochs: 10, learning_rate: 0.001, batch_size: 16, patience: 3, samples_per_epoch: 100000, validation_samples: 20000}

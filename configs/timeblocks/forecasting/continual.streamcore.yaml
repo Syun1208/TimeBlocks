@@ -1,0 +1,20 @@
+task: forecasting
+blockbase_name: paper
+pool_tasks: [forecasting]
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+horizons: [96, 192, 336, 720]
+selection:
+  num_blocks: 6
+  windows: 256
+windows:
+  evaluation_stride: 1
+  evaluation_batch_size: 512
+stream:
+  coreset: streamcore
+  coreset_fraction: 0.05
+  num_periods: 100
+  calibration_period: 10
+  calibration_epochs: 1
+  learning_rate: 1.0e-4
+  batch_size: 64
+  stream_stride: 1

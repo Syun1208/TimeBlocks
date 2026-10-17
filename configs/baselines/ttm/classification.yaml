@@ -1,0 +1,19 @@
+model: TTM
+task: classification
+target_datasets: [ACSF1, Adiac, AllGestureWiimoteX, AllGestureWiimoteY, AllGestureWiimoteZ, ArrowHead, BME, Beef, BeetleFly,
+  BirdChicken, CBF, Car, Chinatown, CinCECGTorso, Coffee, Computers, CricketX, CricketY, CricketZ, DiatomSizeReduction, DistalPhalanxOutlineAgeGroup,
+  DistalPhalanxOutlineCorrect, DistalPhalanxTW, DodgerLoopDay, DodgerLoopGame, DodgerLoopWeekend, ECG200, ECGFiveDays, EOGHorizontalSignal,
+  EOGVerticalSignal, Earthquakes, EthanolLevel, FaceFour, FacesUCR, FiftyWords, Fish, FordB, FreezerRegularTrain, FreezerSmallTrain,
+  Fungi, GestureMidAirD1, GestureMidAirD2, GestureMidAirD3, GesturePebbleZ1, GesturePebbleZ2, GunPoint, GunPointAgeSpan, GunPointMaleVersusFemale,
+  GunPointOldVersusYoung, Ham, HandOutlines, Haptics, Herring, HouseTwenty, InlineSkate, InsectEPGRegularTrain, InsectEPGSmallTrain,
+  InsectWingbeatSound, ItalyPowerDemand, LargeKitchenAppliances, Lightning2, Lightning7, Mallat, Meat, MelbournePedestrian,
+  MiddlePhalanxOutlineAgeGroup, MiddlePhalanxOutlineCorrect, MiddlePhalanxTW, MixedShapesRegularTrain, MixedShapesSmallTrain,
+  MoteStrain, NonInvasiveFetalECGThorax1, NonInvasiveFetalECGThorax2, OSULeaf, OliveOil, PLAID, PhalangesOutlinesCorrect,
+  Phoneme, PickupGestureWiimoteZ, PigAirwayPressure, PigArtPressure, PigCVP, Plane, PowerCons, ProximalPhalanxOutlineAgeGroup,
+  ProximalPhalanxOutlineCorrect, ProximalPhalanxTW, RefrigerationDevices, Rock, ScreenType, SemgHandGenderCh2, SemgHandMovementCh2,
+  SemgHandSubjectCh2, ShakeGestureWiimoteZ, ShapeletSim, ShapesAll, SmallKitchenAppliances, SmoothSubspace, SonyAIBORobotSurface1,
+  SonyAIBORobotSurface2, Strawberry, Symbols, SyntheticControl, ToeSegmentation1, ToeSegmentation2, Trace, TwoLeadECG, UMD,
+  UWaveGestureLibraryAll, UWaveGestureLibraryX, UWaveGestureLibraryY, UWaveGestureLibraryZ, Wine, WordSynonyms, Worms, WormsTwoClass]
+context_length: 96
+hyperparameters: {model_context_length: 512}
+optimization: {epochs: 50, learning_rate: 0.001, batch_size: 64, patience: null}

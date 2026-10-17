@@ -1,0 +1,19 @@
+task: imputation
+blockbase_name: paper
+datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+architectures: [mlp, lstm, attention]
+context_lengths: [64, 128, 256, 512, 1024, 2048]
+num_blocks: [6]
+imputation:
+  mask_ratios: [0.1, 0.2, 0.3]
+block:
+  common_length: 512
+  patch_length: 16
+  hidden_size: 64
+  layers_per_block: 3
+optimization:
+  epochs: 50
+  learning_rate: 1.0e-3
+  batch_size: 64
+  samples_per_epoch: 20000
+  validation_samples: 5000

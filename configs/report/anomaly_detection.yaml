@@ -1,0 +1,4 @@
+task: anomaly_detection
+metric: f1
+kind: table
+lower_is_better: false

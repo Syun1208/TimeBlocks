@@ -1,0 +1,13 @@
+task: forecasting
+blockbase_name: paper
+pool_tasks: [forecasting]
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+horizons: [96, 192, 336, 720]
+selection:
+  num_blocks: 6
+  windows: 256
+  split: train
+  restrict_to_cluster: true
+windows:
+  evaluation_stride: 1
+  evaluation_batch_size: 512

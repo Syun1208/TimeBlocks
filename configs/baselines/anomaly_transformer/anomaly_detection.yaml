@@ -1,0 +1,7 @@
+model: AnomalyTransformer
+task: anomaly_detection
+target_datasets: [SMD, MSL, SMAP, SWaT]
+context_length: 96
+anomaly: {threshold: validation_f1, point_adjustment: true}
+hyperparameters: {d_model: 512, n_heads: 8, e_layers: 3, d_ff: 512, k: 3.0}
+optimization: {epochs: 10, learning_rate: 0.0001, batch_size: 256, patience: 3, samples_per_epoch: 100000, validation_samples: 20000}

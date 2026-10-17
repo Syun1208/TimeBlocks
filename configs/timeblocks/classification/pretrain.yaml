@@ -1,0 +1,8 @@
+task: classification
+blockbase_name: paper
+datasets: [ChlorineConcentration, Crop, ECG5000, ElectricDevices, FaceAll, FordA, MedicalImages, StarLightCurves, SwedishLeaf,
+  TwoPatterns, Wafer, Yoga]
+architectures: [mlp, lstm, attention]
+num_blocks: [6]
+block: {common_length: 512, patch_length: 16, hidden_size: 64, layers_per_block: 3}
+optimization: {epochs: 50, learning_rate: 0.001, batch_size: 64}

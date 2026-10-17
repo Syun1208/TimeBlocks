@@ -1,0 +1,19 @@
+task: anomaly_detection
+blockbase_name: paper
+datasets: [SMD, MSL, SMAP, SWaT]
+architectures: [mlp, lstm, attention]
+context_lengths: [64, 128, 256, 512, 1024]
+num_blocks: [6]
+block:
+  common_length: 512
+  patch_length: 16
+  hidden_size: 64
+  layers_per_block: 3
+windows:
+  train_stride: 8
+optimization:
+  epochs: 50
+  learning_rate: 1.0e-3
+  batch_size: 64
+  samples_per_epoch: 20000
+  validation_samples: 5000

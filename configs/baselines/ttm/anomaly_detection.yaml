@@ -1,0 +1,7 @@
+model: TTM
+task: anomaly_detection
+target_datasets: [SMD, MSL, SMAP, SWaT]
+context_length: 96
+anomaly: {threshold: validation_f1, point_adjustment: true}
+hyperparameters: {model_context_length: 512}
+optimization: {epochs: 10, learning_rate: 0.0001, batch_size: 64, patience: 3, samples_per_epoch: 100000, validation_samples: 20000}

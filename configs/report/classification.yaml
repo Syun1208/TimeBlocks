@@ -1,0 +1,5 @@
+task: classification
+metric: accuracy
+kind: critical_difference
+lower_is_better: false
+figure_name: classification_critical_difference

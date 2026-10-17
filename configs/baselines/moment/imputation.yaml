@@ -1,0 +1,9 @@
+model: Moment
+task: imputation
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+context_length: 96
+imputation:
+  mask_ratios: [0.1, 0.2, 0.3]
+hyperparameters: {freeze_encoder: true, freeze_embedder: true}
+optimization: {epochs: 10, learning_rate: 0.0001, batch_size: 32, patience: 3, samples_per_epoch: 100000, validation_samples: 20000}
+windows: {evaluation_batch_size: 128}

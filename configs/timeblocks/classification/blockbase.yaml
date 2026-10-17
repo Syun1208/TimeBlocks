@@ -1,0 +1,4 @@
+blockbase_name: paper
+pool_tasks: [classification]
+target_datasets: []
+router: {epochs: 10, loss: mse, windows_per_model: 256}

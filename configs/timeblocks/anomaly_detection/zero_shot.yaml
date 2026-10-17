@@ -1,0 +1,12 @@
+task: anomaly_detection
+blockbase_name: paper
+pool_tasks: [anomaly_detection]
+target_datasets: [SMD, MSL, SMAP, SWaT]
+selection:
+  num_blocks: 6
+  windows: 256
+anomaly:
+  threshold: validation_f1
+  point_adjustment: true
+windows:
+  evaluation_batch_size: 512

@@ -1,0 +1,11 @@
+model: DCdetector
+task: anomaly_detection
+target_datasets: [SMD, MSL, SMAP, SWaT]
+context_length: 96
+anomaly: {threshold: validation_f1, point_adjustment: true}
+hyperparameters:
+  d_model: 256
+  n_heads: 1
+  e_layers: 3
+  patch_size: [3, 4, 6]
+optimization: {epochs: 3, learning_rate: 0.0001, batch_size: 128, patience: 3, samples_per_epoch: 100000, validation_samples: 20000}

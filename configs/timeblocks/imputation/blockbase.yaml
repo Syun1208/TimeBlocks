@@ -1,0 +1,9 @@
+blockbase_name: paper
+pool_tasks: [imputation]
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+router:
+  epochs: 10
+  loss: mse
+  windows_per_model: 256
+imputation:
+  mask_ratios: [0.1, 0.2, 0.3]

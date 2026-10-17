@@ -1,0 +1,21 @@
+task: forecasting
+blockbase_name: paper
+datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+architectures: [mlp, lstm, attention]
+context_lengths: [64, 128, 256, 512, 1024, 2048]
+horizons: [96, 192, 336, 720]
+num_blocks: [6]
+block:
+  common_length: 512
+  patch_length: 16
+  hidden_size: 64
+  layers_per_block: 3
+  attention_heads: 4
+  dropout: 0.1
+optimization:
+  epochs: 50
+  learning_rate: 1.0e-3
+  batch_size: 64
+  samples_per_epoch: 20000
+  validation_samples: 5000
+  minimum_free_gigabytes: 2.0

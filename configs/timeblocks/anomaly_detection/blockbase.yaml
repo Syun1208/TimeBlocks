@@ -1,0 +1,7 @@
+blockbase_name: paper
+pool_tasks: [anomaly_detection]
+target_datasets: [SMD, MSL, SMAP, SWaT]
+router:
+  epochs: 10
+  loss: mse
+  windows_per_model: 256

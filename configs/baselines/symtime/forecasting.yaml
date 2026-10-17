@@ -1,0 +1,7 @@
+model: SymTime
+task: forecasting
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+context_length: 96
+horizons: [96, 192, 336, 720]
+hyperparameters: {stride: 4, forward_layers: 3}
+optimization: {epochs: 16, learning_rate: 0.00025, batch_size: 32, patience: 3, samples_per_epoch: 100000, validation_samples: 20000}

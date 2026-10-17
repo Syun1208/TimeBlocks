@@ -1,0 +1,5 @@
+task: forecasting
+metric: mse
+kind: table
+setting: inference_time
+lower_is_better: true
