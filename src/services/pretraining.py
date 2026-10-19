@@ -188,16 +188,17 @@ class BlockPretrainingService:
         shard_index: int,
         num_shards: int,
     ) -> list[ModelRecord]:
-        shard = jobs[shard_index::num_shards]
-        pending = [
-            job for job in shard if not (self._settings.skip_existing and self._store.exists(model_id=job.model_id))
+        remaining = [
+            job for job in jobs if not (self._settings.skip_existing and self._store.exists(model_id=job.model_id))
         ]
+        pending = remaining[shard_index::num_shards]
         logger.info(
-            "Shard %d/%d has %d jobs, %d already trained",
+            "Shard %d/%d has %d of %d pending jobs, %d already trained",
             shard_index,
             num_shards,
-            len(shard),
-            len(shard) - len(pending),
+            len(pending),
+            len(remaining),
+            len(jobs) - len(remaining),
         )
         bar = progress(
             stage=PRETRAIN,

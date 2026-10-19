@@ -9,7 +9,9 @@ from src.data.classes.settings import BlockSettings
 from src.models.tasks import wrap_network
 from src.models.timeblocks.block import TimeBlock
 from src.models.timeblocks.block_model import BlockModel
-from src.models.timeblocks.heads import ClassificationHead, ResampleHead
+from src.models.timeblocks.heads import ClassificationHead, LinearForecastHead, ResampleHead
+
+LINEAR_HEAD = "linear"
 
 
 def build_head(
@@ -24,6 +26,11 @@ def build_head(
         return ClassificationHead(
             common_length=settings.common_length,
             num_classes=num_classes,
+        )
+    if task is Task.FORECASTING and settings.head == LINEAR_HEAD:
+        return LinearForecastHead(
+            common_length=settings.common_length,
+            output_length=horizon,
         )
     output_length = horizon if task is Task.FORECASTING else context_length
     return ResampleHead(output_length=output_length)

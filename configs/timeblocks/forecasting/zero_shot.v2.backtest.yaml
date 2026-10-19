@@ -1,0 +1,23 @@
+task: forecasting
+blockbase_name: paper_v2
+split_protocol: standard
+pool_tasks: [forecasting]
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+horizons: [96, 192, 336, 720]
+selection:
+  num_blocks: 6
+  windows: 256
+  split: train
+  restrict_to_cluster: true
+  match_position: true
+  match_horizon: true
+  match_context: true
+  score: backtest
+  top_k: 8
+  beam_width: 4
+  search_contexts: true
+  backtest_windows: 512
+  backtest_split: auto
+windows:
+  evaluation_stride: 1
+  evaluation_batch_size: 512

@@ -20,6 +20,26 @@ class ResampleHead(nn.Module):
         )
 
 
+class LinearForecastHead(nn.Module):
+    denormalizes = True
+
+    def __init__(
+        self,
+        *,
+        common_length: int,
+        output_length: int,
+    ) -> None:
+        super().__init__()
+        self.output_length = output_length
+        self.projection = nn.Linear(
+            in_features=common_length,
+            out_features=output_length,
+        )
+
+    def forward(self, residual: torch.Tensor) -> torch.Tensor:
+        return self.projection(residual)
+
+
 class ClassificationHead(nn.Module):
     denormalizes = False
 

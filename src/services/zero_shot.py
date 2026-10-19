@@ -30,6 +30,9 @@ logger = logging.getLogger(__name__)
 MODEL_NAME = "TimeBlocks"
 SINGLE_CLASS = 1
 NO_HORIZON = 0
+LINEAR_HEAD = "linear"
+BLOCK_SEPARATOR = "/"
+AUTO_SPLIT = "auto"
 
 
 class TimeBlocksExperimentService:
@@ -111,7 +114,21 @@ class TimeBlocksExperimentService:
             "selection_seconds": selection.seconds,
             "size_mb": module_size_megabytes(module=model),
             "blocks": list(selection.block_ids),
+            "backtest_mse": selection.backtest_mse,
         }
+
+    def _load_head(
+        self,
+        *,
+        model: nn.Module,
+        selection: SelectionResult,
+        block_settings: BlockSettings,
+    ) -> None:
+        if block_settings.head != LINEAR_HEAD:
+            return
+        source = selection.block_ids[-1].rsplit(BLOCK_SEPARATOR, 1)[0]
+        model.network.head.load_state_dict(self._store.head_state(model_id=source))
+        logger.info("Loaded the linear head of %s", source)
 
     def _forecasting(
         self,
@@ -120,14 +137,20 @@ class TimeBlocksExperimentService:
         selection: SelectionResult,
         blocks: list[TimeBlock],
         block_settings: BlockSettings,
+        horizons: tuple[int, ...] | None = None,
     ) -> None:
-        for horizon in self._settings.horizons:
+        for horizon in self._settings.horizons if horizons is None else horizons:
             model = self._assemble(
                 block_settings=block_settings,
                 blocks=blocks,
                 context_length=selection.context_length,
                 horizon=horizon,
                 num_classes=SINGLE_CLASS,
+            )
+            self._load_head(
+                model=model,
+                selection=selection,
+                block_settings=block_settings,
             )
             test = self._windows.build(
                 request=WindowRequest(
@@ -374,6 +397,54 @@ class TimeBlocksExperimentService:
             Task.CLASSIFICATION: self._classification,
         }
 
+    def _backtest_split(self) -> str:
+        if self._settings.selection.backtest_split != AUTO_SPLIT:
+            return self._settings.selection.backtest_split
+        return Split.TRAIN.value if self._settings.exclude_target_from_pool else Split.VALIDATION.value
+
+    def _sampler(self, *, target: str) -> SelectionWindowSampler:
+        return SelectionWindowSampler(
+            windows=self._windows,
+            task=self._task,
+            dataset=target,
+            settings=self._settings.selection,
+            backtest_split=self._backtest_split(),
+        )
+
+    def _per_horizon(self) -> bool:
+        return self._task is Task.FORECASTING and self._settings.selection.match_horizon
+
+    def _run_target(
+        self,
+        *,
+        target: str,
+        handler: Callable[..., None],
+    ) -> None:
+        selector, block_settings = self._selector(target=target)
+        selection, blocks = selector.select(sampler=self._sampler(target=target))
+        handler(
+            target=target,
+            selection=selection,
+            blocks=blocks,
+            block_settings=block_settings,
+        )
+
+    def _run_per_horizon(self, *, target: str) -> None:
+        selector, block_settings = self._selector(target=target)
+        for horizon in self._settings.horizons:
+            set_seed(seed=self._settings.seed)
+            selection, blocks = selector.select(
+                sampler=self._sampler(target=target),
+                horizon=horizon,
+            )
+            self._forecasting(
+                target=target,
+                selection=selection,
+                blocks=blocks,
+                block_settings=block_settings,
+                horizons=(horizon,),
+            )
+
     def run(self) -> None:
         handler = self._handlers()[self._task]
         bar = progress(
@@ -384,21 +455,13 @@ class TimeBlocksExperimentService:
         for target in self._settings.target_datasets:
             bar.set_postfix_str(target)
             set_seed(seed=self._settings.seed)
-            selector, block_settings = self._selector(target=target)
-            selection, blocks = selector.select(
-                sampler=SelectionWindowSampler(
-                    windows=self._windows,
-                    task=self._task,
-                    dataset=target,
-                    settings=self._settings.selection,
+            if self._per_horizon():
+                self._run_per_horizon(target=target)
+            else:
+                self._run_target(
+                    target=target,
+                    handler=handler,
                 )
-            )
-            handler(
-                target=target,
-                selection=selection,
-                blocks=blocks,
-                block_settings=block_settings,
-            )
             self._store.release()
             bar.update(1)
         finish(bar=bar)

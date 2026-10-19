@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GPU_IDS=3
-CONFIG=configs/timeblocks/forecasting/continual.random.yaml
+GPU_IDS=${GPU_IDS:-3}
+CONFIG=${CONFIG:-configs/timeblocks/forecasting/continual.random.yaml}
 
 cd "$(dirname "$0")/.."
 export CUDA_DEVICE_ORDER=PCI_BUS_ID

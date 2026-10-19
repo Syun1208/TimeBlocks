@@ -1,4 +1,0 @@
-forecasting: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
-anomaly_detection: [SMD, MSL, SMAP, SWaT]
-classification: [all]
-retries: 3

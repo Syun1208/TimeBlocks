@@ -16,6 +16,12 @@ from src.data.loaders.windows import build_loader, evenly_spaced_subset
 from src.utils.progress import TRAIN, VALIDATE, finish, progress
 
 logger = logging.getLogger(__name__)
+NO_SCHEDULER = "none"
+COSINE_SCHEDULER = "cosine"
+
+
+class UnknownSchedulerError(ValueError):
+    pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,6 +53,16 @@ class Trainer:
             lr=self._settings.learning_rate,
             weight_decay=self._settings.weight_decay,
         )
+
+    def _scheduler(self, *, optimizer: torch.optim.Optimizer) -> torch.optim.lr_scheduler.LRScheduler | None:
+        if self._settings.scheduler == NO_SCHEDULER:
+            return None
+        if self._settings.scheduler == COSINE_SCHEDULER:
+            return torch.optim.lr_scheduler.CosineAnnealingLR(
+                optimizer=optimizer,
+                T_max=self._settings.epochs,
+            )
+        raise UnknownSchedulerError(f"Unknown scheduler {self._settings.scheduler}")
 
     def _train_epoch(
         self,
@@ -140,6 +156,7 @@ class Trainer:
         started = time.perf_counter()
         model.to(self._device)
         optimizer = self._optimizer(model=model)
+        scheduler = self._scheduler(optimizer=optimizer)
         best_loss, best_epoch, best_state, stale = math.inf, 0, None, 0
         epoch = 0
         for epoch in range(1, self._settings.epochs + 1):
@@ -149,6 +166,8 @@ class Trainer:
                 dataset=train_dataset,
                 epoch=epoch,
             )
+            if scheduler is not None:
+                scheduler.step()
             if validation_dataset is None:
                 logger.debug("%s epoch %d train %.5f", self._label, epoch, train_loss)
                 continue

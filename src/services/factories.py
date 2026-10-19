@@ -31,6 +31,7 @@ from src.services.evaluation import Evaluator
 from src.services.pretraining import BlockPretrainingService, PretrainGrid
 from src.services.results import ResultStore
 from src.services.router_training import ResidualCollector, RouterTrainingService
+from src.data.loaders.catalog import TABLE_A1_SPLIT
 from src.services.windowing import WindowFactory
 from src.utils.env import StoragePaths
 from src.utils.runtime import ensure_free_memory, resolve_device
@@ -39,9 +40,16 @@ from src.utils.third_party import IsolatedImporter
 logger = logging.getLogger(__name__)
 
 
-def build_window_factory(*, storage: StoragePaths) -> WindowFactory:
+def build_window_factory(
+    *,
+    storage: StoragePaths,
+    split_protocol: str = TABLE_A1_SPLIT,
+) -> WindowFactory:
     return WindowFactory(
-        repository=DatasetRepository(data_root=storage.data),
+        repository=DatasetRepository(
+            data_root=storage.data,
+            split_protocol=split_protocol,
+        ),
         time_encoder=TimeFeatureEncoder(),
     )
 
@@ -112,7 +120,10 @@ def build_pretraining(
         device=device,
         minimum_gigabytes=settings.optimization.minimum_free_gigabytes,
     )
-    windows = build_window_factory(storage=storage)
+    windows = build_window_factory(
+        storage=storage,
+        split_protocol=settings.split_protocol,
+    )
     service = BlockPretrainingService(
         settings=settings,
         windows=windows,
@@ -151,7 +162,10 @@ def build_blockbase_index(
             settings=settings.router,
             collector=ResidualCollector(
                 store=store,
-                windows=build_window_factory(storage=storage),
+                windows=build_window_factory(
+                    storage=storage,
+                    split_protocol=settings.split_protocol,
+                ),
                 imputation=settings.imputation,
                 windows_per_model=settings.router.windows_per_model,
                 device=device,
@@ -177,7 +191,10 @@ def build_timeblocks_experiment(
     )
     return TimeBlocksExperimentService(
         settings=settings,
-        windows=build_window_factory(storage=storage),
+        windows=build_window_factory(
+            storage=storage,
+            split_protocol=settings.split_protocol,
+        ),
         store=build_blockbase_store(
             storage=storage,
             blockbase_name=settings.blockbase_name,
@@ -212,7 +229,10 @@ def build_baseline_experiment(
     )
     return BaselineExperimentService(
         settings=settings,
-        windows=build_window_factory(storage=storage),
+        windows=build_window_factory(
+            storage=storage,
+            split_protocol=settings.split_protocol,
+        ),
         factory=BaselineFactory(importer=IsolatedImporter(third_party_root=storage.third_party)),
         checkpoints=CheckpointStore(root=storage.weights),
         evaluator=build_evaluator(

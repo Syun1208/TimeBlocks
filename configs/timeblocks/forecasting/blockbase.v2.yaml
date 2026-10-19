@@ -1,0 +1,17 @@
+blockbase_name: paper_v2
+split_protocol: standard
+pool_tasks: [forecasting]
+target_datasets: [ETTh1, ETTh2, ETTm1, ETTm2, Weather]
+router:
+  channels: 32
+  kernel_size: 5
+  pooled_length: 32
+  epochs: 10
+  rounds: 1
+  learning_rate: 1.0e-3
+  batch_size: 64
+  loss: mse
+  windows_per_model: 256
+clustering:
+  num_clusters: null
+  normalize: true

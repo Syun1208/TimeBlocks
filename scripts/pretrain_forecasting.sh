@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GPU_IDS=5,7
-WORKERS_PER_GPU=4
-CONFIG=configs/timeblocks/forecasting/pretrain.yaml
+GPU_IDS=${GPU_IDS:-5,7}
+WORKERS_PER_GPU=${WORKERS_PER_GPU:-4}
+CONFIG=${CONFIG:-configs/timeblocks/forecasting/pretrain.yaml}
 
 cd "$(dirname "$0")/.."
 export CUDA_DEVICE_ORDER=PCI_BUS_ID

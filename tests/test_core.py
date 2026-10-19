@@ -176,3 +176,112 @@ def test_config_loader_builds_nested_and_rejects_unknown_keys() -> None:
             settings_type=OuterSettings,
             values={},
         )
+
+
+def test_residual_connection_with_linear_head_shapes() -> None:
+    settings = BlockSettings(
+        common_length=64,
+        patch_length=4,
+        hidden_size=8,
+        layers_per_block=2,
+        attention_heads=2,
+        connection="residual",
+        head="linear",
+    )
+    model = build_task_model(
+        task=Task.FORECASTING,
+        settings=settings,
+        blocks=build_fresh_blocks(
+            settings=settings,
+            architecture=Architecture.MLP,
+            num_blocks=2,
+        ),
+        context_length=40,
+        horizon=24,
+        num_classes=1,
+    )
+    model.eval()
+    inputs = torch.randn(2, 40, 1)
+    assert model.network(x=inputs).shape == (2, 24, 1)
+    residuals = model.network.residuals(values=inputs)
+    update = model.network.blocks[0](residual=residuals[0])
+    assert torch.allclose(residuals[1], residuals[0] + update)
+
+
+def test_standard_split_protocol_overrides_counts() -> None:
+    from src.data.loaders.catalog import STANDARD_SPLIT, UnknownSplitProtocolError, resolve_spec
+
+    paper = resolve_spec(name="ETTh1")
+    standard = resolve_spec(
+        name="ETTh1",
+        split_protocol=STANDARD_SPLIT,
+    )
+    assert paper.split_counts.train == 10452
+    assert standard.split_counts.train == 8640
+    with pytest.raises(UnknownSplitProtocolError):
+        resolve_spec(
+            name="ETTh1",
+            split_protocol="unknown",
+        )
+
+
+def test_selector_restricts_each_step_to_its_position() -> None:
+    from src.data.classes.blocks import BlockRecord
+    from src.data.classes.settings import SelectionSettings
+    from src.services.block_selection import BlockSelector
+
+    selector = object.__new__(BlockSelector)
+    selector._settings = SelectionSettings(match_position=True)
+    selector._blocks = [
+        BlockRecord(
+            block_id=f"m{index // 2}/b{index % 2 + 1}",
+            model_id=f"m{index // 2}",
+            position=index % 2 + 1,
+            task="forecasting",
+            dataset="ETTh1",
+            architecture="mlp",
+            context_length=96,
+            sampling_stride=2 ** (1 - index % 2),
+        )
+        for index in range(4)
+    ]
+    pool = selector._step_pool(
+        candidates=[0, 1, 2, 3],
+        fallback=[0, 1, 2, 3],
+        chosen=[0],
+        step=2,
+    )
+    assert pool == [1, 3]
+    fallback_pool = selector._step_pool(
+        candidates=[0, 2],
+        fallback=[0, 1, 2, 3],
+        chosen=[0],
+        step=2,
+    )
+    assert fallback_pool == [1, 3]
+
+
+def test_backtest_completion_uses_the_donor_suffix() -> None:
+    from src.data.classes.blocks import BlockRecord
+    from src.data.classes.settings import SelectionSettings
+    from src.services.block_selection import BlockSelector
+
+    selector = object.__new__(BlockSelector)
+    selector._settings = SelectionSettings(num_blocks=2)
+    selector._blocks = [
+        BlockRecord(
+            block_id=f"m{index // 2}/b{index % 2 + 1}",
+            model_id=f"m{index // 2}",
+            position=index % 2 + 1,
+            task="forecasting",
+            dataset="ETTh1",
+            architecture="mlp",
+            context_length=96,
+            sampling_stride=2 ** (1 - index % 2),
+        )
+        for index in range(3)
+    ]
+    selector._positions = {(block.model_id, block.position): index for index, block in enumerate(selector._blocks)}
+    assert selector._completion(chosen=(0,)) == [1]
+    assert selector._completion(chosen=(0, 1)) == []
+    assert selector._completion(chosen=(2,)) is None

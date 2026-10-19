@@ -30,6 +30,7 @@ FINGERPRINTS_FILE = "fingerprints.npy"
 BLOCKS_FILE = "blocks.json"
 CLUSTERS_FILE = "clusters.json"
 BLOCK_PREFIX = "blocks"
+HEAD_PREFIX = "head."
 NO_EXCLUSION = "none"
 
 
@@ -111,6 +112,16 @@ class BlockbaseStore:
                 values=self._payload(model_id=model_id)["block_settings"],
             )
         return self._settings_cache[model_id]
+
+    def record(self, *, model_id: str) -> ModelRecord:
+        return ModelRecord(**self._payload(model_id=model_id)["record"])
+
+    def head_state(self, *, model_id: str) -> dict[str, torch.Tensor]:
+        state = self._state(model_id=model_id)
+        head = {key[len(HEAD_PREFIX) :]: value for key, value in state.items() if key.startswith(HEAD_PREFIX)}
+        if not head:
+            raise BlockbaseError(f"Model {model_id} has no trained head")
+        return head
 
     def _state(self, *, model_id: str) -> dict[str, torch.Tensor]:
         if model_id not in self._state_cache:

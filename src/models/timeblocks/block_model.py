@@ -9,6 +9,8 @@ from src.data.classes.settings import BlockSettings
 from src.models.timeblocks.block import TimeBlock
 from src.models.timeblocks.standardization import InputStandardization, InstanceStatistics, denormalize
 
+RESIDUAL_CONNECTION = "residual"
+
 
 class BlockModel(nn.Module):
     def __init__(
@@ -26,6 +28,16 @@ class BlockModel(nn.Module):
         )
         self.blocks = nn.ModuleList(blocks)
         self.head = head
+        self.residual_connection = settings.connection == RESIDUAL_CONNECTION
+
+    def _step(
+        self,
+        *,
+        block: nn.Module,
+        residual: torch.Tensor,
+    ) -> torch.Tensor:
+        update = block(residual=residual)
+        return residual + update if self.residual_connection else update
 
     def _prepare(
         self,
@@ -51,7 +63,10 @@ class BlockModel(nn.Module):
         )
         outputs = [residual]
         for block in self.blocks[: len(self.blocks) if depth is None else depth]:
-            residual = block(residual=residual)
+            residual = self._step(
+                block=block,
+                residual=residual,
+            )
             outputs.append(residual)
         return outputs
 
@@ -65,7 +80,10 @@ class BlockModel(nn.Module):
             mask=mask,
         )
         for block in self.blocks:
-            residual = block(residual=residual)
+            residual = self._step(
+                block=block,
+                residual=residual,
+            )
         output = self.head(residual=residual)
         if not self.head.denormalizes:
             return output

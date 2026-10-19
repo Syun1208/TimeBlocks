@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GPU_IDS=5,7
-CONFIG=configs/timeblocks/forecasting/zero_shot.yaml
+GPU_IDS=${GPU_IDS:-5,7}
+CONFIG=${CONFIG:-configs/timeblocks/forecasting/zero_shot.yaml}
 
 cd "$(dirname "$0")/.."
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
